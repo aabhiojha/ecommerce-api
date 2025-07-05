@@ -1,14 +1,14 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Products, Category
+from .models import Product, Category
 from .serializers import ProductListSerializer, ProductDetailSerializer, CategoryDetailsSerializer, CategoryListSerializer
 
 # Create your views here.
 
 @api_view(['GET'])
 def product_list(request):
-    products = Products.objects.filter(featured=True)
+    products = Product.objects.filter(featured=True)
     serializer = ProductListSerializer(products, many=True)
     return Response(serializer.data)
 
@@ -26,7 +26,7 @@ def category_list(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
-def category_detail(request):
-    categories = Category.objects.all()
+def category_detail(request, slug):
+    categories = Category.objects.get(slug=slug)
     serializer = CategoryListSerializer(categories, many=True)
     return Response(serializer.data)
