@@ -25,7 +25,7 @@ class CategoryDetailsSerializer(serializers.ModelSerializer):
 
 class CartItemSerailizer(serializers.ModelSerializer):
     product = ProductListSerializer(read_only=True)
-    sub_total = serializers.SerializerMethodField
+    sub_total = serializers.SerializerMethodField()
     class meta:
         model = CartItem
         fields = ["id", "product", "quantity", "sub_total"]
