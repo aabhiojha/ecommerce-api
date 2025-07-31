@@ -1,16 +1,26 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import CartItem, Product, Category, Cart
-from .serializers import CartSerializer, ProductListSerializer, ProductDetailSerializer, CategoryDetailsSerializer, CategoryListSerializer
+
+from .models import Cart, CartItem, Category, Product
+from .serializers import (
+    CartSerializer,
+    CartStatSerializer,
+    CategoryDetailsSerializer,
+    CategoryListSerializer,
+    ProductDetailSerializer,
+    ProductListSerializer,
+)
 
 # Create your views here.
 
-@api_view(['GET'])
+
+@api_view(["GET"])
 def product_list(request):
     products = Product.objects.filter(featured=True)
     serializer = ProductListSerializer(products, many=True)
     return Response(serializer.data)
+
 
 @api_view(["GET"])
 def product_detail(request, slug):
@@ -19,17 +29,19 @@ def product_detail(request, slug):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 def category_list(request):
     categories = Category.objects.all()
     serializer = CategoryListSerializer(categories, many=True)
     return Response(serializer.data)
 
-@api_view(['GET'])
+
+@api_view(["GET"])
 def category_detail(request, slug):
     categories = Category.objects.get(slug=slug)
     serializer = CategoryListSerializer(categories, many=True)
     return Response(serializer.data)
+
 
 @api_view(["POST"])
 def add_to_cart(request):
@@ -45,3 +57,17 @@ def add_to_cart(request):
 
     serializer = CartSerializer(cart)
     return Response(serializer.data)
+
+
+@api_view(["PUT"])
+def update_cartitem_quantity(request, slug):
+    cartitem_id = request.data.get("item_id")
+    quantity = request.data.get("quantity")
+    cartitem = CartItem.objects.get(id=cartitem_id)
+    cartitem_id.quantity = quantity
+    cartitem.save()
+
+    serializer = CartStatSerializer(cartitem)
+    return Response(
+        {"data": serializer.data, "message": "Cart Item updated successfully"}
+    )
