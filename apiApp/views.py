@@ -1,8 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Cart, CartItem, Category, Product
+from .models import Cart, CartItem, Category, Product, Review
 from .serializers import (
     CartSerializer,
     CartStatSerializer,
@@ -10,9 +11,10 @@ from .serializers import (
     CategoryListSerializer,
     ProductDetailSerializer,
     ProductListSerializer,
+    ReviewSerializer,
 )
 
-# Create your views here.
+User = get_user_model()
 
 
 @api_view(["GET"])
@@ -38,8 +40,9 @@ def category_list(request):
 
 @api_view(["GET"])
 def category_detail(request, slug):
-    categories = Category.objects.get(slug=slug)
-    serializer = CategoryListSerializer(categories, many=True)
+    category = Category.objects.get(slug=slug)
+    serializer = CategoryDetailsSerializer(category)
+
     return Response(serializer.data)
 
 
@@ -60,14 +63,33 @@ def add_to_cart(request):
 
 
 @api_view(["PUT"])
-def update_cartitem_quantity(request, slug):
+def update_cartitem_quantity(request):
     cartitem_id = request.data.get("item_id")
     quantity = request.data.get("quantity")
+    quantity = int(quantity)
     cartitem = CartItem.objects.get(id=cartitem_id)
-    cartitem_id.quantity = quantity
+    cartitem.quantity = quantity
     cartitem.save()
 
-    serializer = CartStatSerializer(cartitem)
+    serializer = CartStatSerializer(cartitem.cart)
     return Response(
         {"data": serializer.data, "message": "Cart Item updated successfully"}
     )
+
+
+@api_view(["POST"])
+def add_review(request):
+
+    product_id = request.data.get("product_id")
+    email = request.data.get("email")
+    rating = request.data.get("rating")
+    review_text = request.data.get("review")
+
+    product = Product.objects.get(id=product_id)
+    user = User.objects.get(email)
+
+    review = Review.objects.create(
+        product=product, user=user, rating=rating, review=review_text
+    )
+    serializer = ReviewSerializer(review)
+    return Response(serializer.data)
